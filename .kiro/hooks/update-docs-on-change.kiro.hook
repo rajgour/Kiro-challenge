@@ -6,12 +6,12 @@ enabled: true
 
 # Trigger Configuration
 trigger:
-  type: file_save
+  event: fileEdited
   filePattern: "backend/main.py"
 
 # Action Configuration
 action:
-  type: agent_message
+  type: askAgent
   message: |
     The backend/main.py file has been modified. Please:
     
