@@ -23,3 +23,7 @@ cdk.out/
 
 # OS
 .DS_Store
+
+# Lambda package (generated)
+backend/lambda_package/
+backend/python/
