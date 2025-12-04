@@ -1,0 +1,120 @@
+# Implementation Plan
+
+- [ ] 1. Set up data models and validation
+  - [x] 1.1 Create User and UserCreate Pydantic models with validation
+    - Add User model with userId, name, createdAt fields
+    - Add UserCreate model with optional userId and required name
+    - Implement whitespace validation for name field
+    - _Requirements: 1.1, 1.3, 1.4_
+  - [ ]* 1.2 Write property test for user creation data preservation
+    - **Property 1: User creation preserves data**
+    - **Validates: Requirements 1.1, 1.2, 1.4**
+  - [ ]* 1.3 Write property test for whitespace name rejection
+    - **Property 2: Whitespace-only names are rejected**
+    - **Validates: Requirements 1.3**
+  - [x] 1.4 Create Registration and UserRegistration Pydantic models
+    - Add Registration model with eventId, userId, status, waitlistPosition, registeredAt
+    - Add UserRegistration model for user's event list response
+    - _Requirements: 5.1, 5.2, 6.1_
+  - [ ]* 1.5 Write property test for registration data round-trip
+    - **Property 11: Registration data round-trip**
+    - **Validates: Requirements 6.1, 6.2**
+
+- [ ] 2. Extend Event model for waitlist support
+  - [x] 2.1 Add waitlist fields to Event model
+    - Add waitlistEnabled boolean field (default False)
+    - Add registeredCount integer field (default 0)
+    - Add waitlistCount integer field (default 0)
+    - _Requirements: 2.1, 2.2, 2.3_
+
+- [ ] 3. Implement User API endpoints
+  - [x] 3.1 Implement POST /users endpoint
+    - Create user with provided or auto-generated userId
+    - Validate name is non-empty and not whitespace-only
+    - Store user in DynamoDB users table
+    - Return created user with 201 status
+    - _Requirements: 1.1, 1.2, 1.3, 1.4_
+  - [ ]* 3.2 Write property test for auto-generated userId uniqueness
+    - **Property 3: Auto-generated userIds are unique**
+    - **Validates: Requirements 1.2**
+  - [x] 3.3 Implement GET /users/{user_id} endpoint
+    - Retrieve user from DynamoDB
+    - Return 404 if user not found
+    - _Requirements: 1.1_
+  - [x] 3.4 Implement GET /users/{user_id}/registrations endpoint
+    - Query registrations GSI by userId
+    - Include event details and registration status
+    - Return empty list if no registrations
+    - Return 404 if user not found
+    - _Requirements: 5.1, 5.2, 5.3, 5.4_
+  - [ ]* 3.5 Write property test for user registrations list completeness
+    - **Property 10: User registrations list completeness**
+    - **Validates: Requirements 5.1, 5.2**
+
+- [ ] 4. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [ ] 5. Implement Registration API endpoints
+  - [x] 5.1 Implement POST /events/{event_id}/register endpoint
+    - Validate event and user exist
+    - Check if user already registered (return 409 if duplicate)
+    - Check event capacity
+    - If capacity available: create registration with status "registered"
+    - If full and waitlist enabled: add to waitlist with position
+    - If full and no waitlist: return 409 error
+    - Update event registeredCount or waitlistCount
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
+  - [ ]* 5.2 Write property test for registration count consistency
+    - **Property 4: Registration count consistency**
+    - **Validates: Requirements 3.1, 4.1**
+  - [ ]* 5.3 Write property test for capacity enforcement without waitlist
+    - **Property 5: Capacity enforcement without waitlist**
+    - **Validates: Requirements 2.2, 3.2**
+  - [ ]* 5.4 Write property test for waitlist addition when full
+    - **Property 6: Waitlist addition when full**
+    - **Validates: Requirements 2.1, 3.3**
+  - [ ]* 5.5 Write property test for no duplicate registrations
+    - **Property 7: No duplicate registrations**
+    - **Validates: Requirements 3.4**
+
+- [ ] 6. Implement Unregistration logic
+  - [x] 6.1 Implement DELETE /events/{event_id}/register/{user_id} endpoint
+    - Validate registration exists (return 404 if not)
+    - If user is registered: remove registration, decrement registeredCount
+    - If waitlist non-empty: promote first waitlisted user
+    - If user is waitlisted: remove from waitlist, update positions
+    - _Requirements: 4.1, 4.2, 4.3, 4.4_
+  - [ ]* 6.2 Write property test for waitlist promotion on unregistration
+    - **Property 8: Waitlist promotion on unregistration**
+    - **Validates: Requirements 4.2**
+  - [ ]* 6.3 Write property test for waitlist position consistency
+    - **Property 9: Waitlist position consistency**
+    - **Validates: Requirements 4.3**
+
+- [ ] 7. Implement supporting endpoints
+  - [x] 7.1 Implement GET /events/{event_id}/registrations endpoint
+    - Return list of registrations for event
+    - Include registered and waitlisted users
+    - _Requirements: 2.3_
+  - [x] 7.2 Implement PUT /events/{event_id}/waitlist endpoint
+    - Update waitlistEnabled setting for event
+    - Return updated event configuration
+    - _Requirements: 2.1, 2.2_
+
+- [ ] 8. Update infrastructure for new DynamoDB tables
+  - [x] 8.1 Add Users table to CDK stack
+    - Create DynamoDB table with userId as partition key
+    - Configure appropriate read/write capacity
+    - _Requirements: 1.1_
+  - [x] 8.2 Add Registrations table to CDK stack
+    - Create DynamoDB table with eventId as partition key, userId as sort key
+    - Add GSI on userId for user registration queries
+    - Configure appropriate read/write capacity
+    - _Requirements: 3.1, 5.1_
+  - [x] 8.3 Update Lambda permissions for new tables
+    - Grant read/write access to Users table
+    - Grant read/write access to Registrations table
+    - _Requirements: 1.1, 3.1_
+
+- [x] 9. Final Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.

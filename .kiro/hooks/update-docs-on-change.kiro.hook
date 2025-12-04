@@ -1,0 +1,26 @@
+---
+name: Update Docs on Source Change
+description: Automatically updates API documentation when backend source files are modified
+enabled: true
+---
+
+# Trigger Configuration
+trigger:
+  type: file_save
+  filePattern: "backend/main.py"
+
+# Action Configuration
+action:
+  type: agent_message
+  message: |
+    The backend/main.py file has been modified. Please:
+    
+    1. Review the changes to identify any new or modified API endpoints
+    2. Update the API documentation in backend/docs/ by regenerating it with pdoc:
+       ```bash
+       python3 -m pdoc backend/main.py -o backend/docs
+       ```
+    3. Update the README.md if there are significant new features or API changes
+    4. Update DEPLOYMENT.md if there are infrastructure or deployment-related changes
+    
+    Focus on keeping documentation in sync with the code changes.
