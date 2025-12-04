@@ -1,0 +1,40 @@
+{
+  "mcpServers": {
+    "awslabs.frontend-mcp-server": {
+      "command": "uvx",
+      "args": ["awslabs.frontend-mcp-server@latest"],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "aws-kb-retrieval-server": {
+      "command": "uvx",
+      "args": ["awslabs.aws-kb-retrieval-mcp-server@latest"],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": true,
+      "autoApprove": []
+    },
+    "aws-cdk": {
+      "command": "npx",
+      "args": ["-y", "@aws/mcp-server-cdk"],
+      "disabled": true,
+      "autoApprove": []
+    },
+    "fetch": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"],
+      "disabled": false,
+      "autoApprove": []
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@context7/mcp-server"],
+      "disabled": true,
+      "autoApprove": []
+    }
+  }
+}
